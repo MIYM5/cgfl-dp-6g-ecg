@@ -4,7 +4,7 @@ title: "CGFL: channel-aware gradient sparsification with masked record-level dif
 type: software
 license: MIT
 version: "1.0.0"
-doi: "10.5281/zenodo.24319338"
+doi: "10.5281/zenodo.24319337"
 date-released: "2026-11-17"
 authors:
   - family-names: "Mughal"

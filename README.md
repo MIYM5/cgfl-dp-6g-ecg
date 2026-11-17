@@ -1,6 +1,6 @@
 # CGFL: channel-aware gradient sparsification with record-level DP for federated learning over 6G uplinks
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24319338.svg)](https://doi.org/10.5281/zenodo.24319338)
+[![DOI](https://zenodo.org/badge/1461663079.svg)](https://doi.org/10.5281/zenodo.24319337)
 
 Code, results and audit scripts for a research manuscript on channel-aware gradient sparsification with
 record-level differential privacy for federated learning over 6G uplinks, evaluated on ECG classification.
@@ -93,4 +93,4 @@ few thousandths because GPU kernels are not bit-wise deterministic.
 ## Licence and citation
 Code: MIT licence (`LICENSE`). Result files (`results/`): CC BY 4.0. The ECG datasets are not redistributed here;
 download PTB-XL and the PhysioNet/CinC 2021 data from PhysioNet under their own licences.
-Please cite this software (`CITATION.cff`; DOI [10.5281/zenodo.24319338](https://doi.org/10.5281/zenodo.24319338)).
+Please cite this software (`CITATION.cff`; DOI [10.5281/zenodo.24319337](https://doi.org/10.5281/zenodo.24319337), which always resolves to the latest version).
