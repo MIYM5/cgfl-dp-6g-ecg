@@ -1,0 +1,514 @@
+table,row,column,paper,recomputed,status
+tab:main,FedAvg [np],AUC,0.854$\pm$0.005,0.854±0.005,OK
+tab:main,FedAvg [np],F1,0.502,0.502,OK
+tab:main,FedAvg [np],BAcc,0.528,0.528,OK
+tab:main,FedAvg [np],MB,1230,1230,OK
+tab:main,FedAvg [np],Uplink,372.7,372.7,OK
+tab:main,FedAvg [np],T2T,79.7,79.7,OK
+tab:main,Fixed ratio [np],AUC,0.849$\pm$0.007,0.849±0.007,OK
+tab:main,Fixed ratio [np],F1,0.504,0.504,OK
+tab:main,Fixed ratio [np],BAcc,0.529,0.529,OK
+tab:main,Fixed ratio [np],MB,530,530,OK
+tab:main,Fixed ratio [np],Uplink,162.3,162.3,OK
+tab:main,Fixed ratio [np],T2T,46.6,46.6,OK
+tab:main,Random ratio [np],AUC,0.848$\pm$0.007,0.848±0.007,OK
+tab:main,Random ratio [np],F1,0.500,0.500,OK
+tab:main,Random ratio [np],BAcc,0.526,0.526,OK
+tab:main,Random ratio [np],MB,528,528,OK
+tab:main,Random ratio [np],Uplink,171.6,171.6,OK
+tab:main,Random ratio [np],T2T,49.4,49.4,OK
+tab:main,Inverse map [np],AUC,0.846$\pm$0.007,0.846±0.007,OK
+tab:main,Inverse map [np],F1,0.499,0.499,OK
+tab:main,Inverse map [np],BAcc,0.522,0.522,OK
+tab:main,Inverse map [np],MB,527,527,OK
+tab:main,Inverse map [np],Uplink,503.7,503.7,OK
+tab:main,Inverse map [np],T2T,164.3,164.3,OK
+tab:main,Logistic map [np],AUC,0.846$\pm$0.006,0.846±0.006,OK
+tab:main,Logistic map [np],F1,0.497,0.497,OK
+tab:main,Logistic map [np],BAcc,0.521,0.521,OK
+tab:main,Logistic map [np],MB,529,529,OK
+tab:main,Logistic map [np],Uplink,61.1,61.1,OK
+tab:main,Logistic map [np],T2T,20.5,20.5,OK
+tab:main,Capacity map [np],AUC,0.848$\pm$0.007,0.848±0.007,OK
+tab:main,Capacity map [np],F1,0.503,0.503,OK
+tab:main,Capacity map [np],BAcc,0.527,0.527,OK
+tab:main,Capacity map [np],MB,529,529,OK
+tab:main,Capacity map [np],Uplink,59.1,59.1,OK
+tab:main,Capacity map [np],T2T,19.1,19.1,OK
+tab:main,FedAvg [dp],AUC,0.696$\pm$0.021,0.696±0.021,OK
+tab:main,FedAvg [dp],F1,0.249,0.249,OK
+tab:main,FedAvg [dp],BAcc,0.292,0.292,OK
+tab:main,FedAvg [dp],MB,1230,1230,OK
+tab:main,FedAvg [dp],Uplink,372.7,372.7,OK
+tab:main,FedAvg [dp],T2T,128.7,128.7,OK
+tab:main,Fixed ratio [dp],AUC,0.708$\pm$0.008,0.708±0.008,OK
+tab:main,Fixed ratio [dp],F1,0.249,0.249,OK
+tab:main,Fixed ratio [dp],BAcc,0.303,0.303,OK
+tab:main,Fixed ratio [dp],MB,339,339,OK
+tab:main,Fixed ratio [dp],Uplink,103.9,103.9,OK
+tab:main,Fixed ratio [dp],T2T,19.0,19.0,OK
+tab:main,Random ratio [dp],AUC,0.700$\pm$0.015,0.700±0.015,OK
+tab:main,Random ratio [dp],F1,0.226,0.226,OK
+tab:main,Random ratio [dp],BAcc,0.283,0.283,OK
+tab:main,Random ratio [dp],MB,338,338,OK
+tab:main,Random ratio [dp],Uplink,109.8,109.8,OK
+tab:main,Random ratio [dp],T2T,24.4,24.4,OK
+tab:main,Inverse map [dp],AUC,0.707$\pm$0.012,0.707±0.012,OK
+tab:main,Inverse map [dp],F1,0.244,0.244,OK
+tab:main,Inverse map [dp],BAcc,0.305,0.305,OK
+tab:main,Inverse map [dp],MB,337,337,OK
+tab:main,Inverse map [dp],Uplink,322.4,322.4,OK
+tab:main,Inverse map [dp],T2T,65.6,65.6,OK
+tab:main,Logistic map [dp],AUC,0.693$\pm$0.015,0.693±0.015,OK
+tab:main,Logistic map [dp],F1,0.258,0.258,OK
+tab:main,Logistic map [dp],BAcc,0.305,0.305,OK
+tab:main,Logistic map [dp],MB,338,338,OK
+tab:main,Logistic map [dp],Uplink,39.1,39.1,OK
+tab:main,Logistic map [dp],T2T,10.6,10.6,OK
+tab:main,Capacity map [dp],AUC,0.695$\pm$0.017,0.695±0.017,OK
+tab:main,Capacity map [dp],F1,0.266,0.266,OK
+tab:main,Capacity map [dp],BAcc,0.302,0.302,OK
+tab:main,Capacity map [dp],MB,339,339,OK
+tab:main,Capacity map [dp],Uplink,37.8,37.8,OK
+tab:main,Capacity map [dp],T2T,7.3,7.3,OK
+tab:main,Top-k after noise,AUC,0.674$\pm$0.026,0.674±0.026,OK
+tab:main,Top-k after noise,MB,529,529,OK
+tab:main,Top-k after noise,Uplink,59.1,59.1,OK
+tab:epsT,"eps=1,T=100",sigma,12.6,12.6,OK
+tab:epsT,"eps=1,T=100",AUC fixed,0.625$\pm$0.066,0.625±0.066,OK
+tab:epsT,"eps=1,T=100",AUC cap,0.648$\pm$0.033,0.648±0.033,OK
+tab:epsT,"eps=1,T=100",Uplink fixed,45,45,OK
+tab:epsT,"eps=1,T=100",Uplink cap,17,17,OK
+tab:epsT,"eps=1,T=200",sigma,17.7,17.7,OK
+tab:epsT,"eps=1,T=200",AUC fixed,0.539$\pm$0.042,0.539±0.042,OK
+tab:epsT,"eps=1,T=200",AUC cap,0.547$\pm$0.039,0.547±0.039,OK
+tab:epsT,"eps=1,T=200",Uplink fixed,97,97,OK
+tab:epsT,"eps=1,T=200",Uplink cap,34,34,OK
+tab:epsT,"eps=1,T=400",sigma,25.0,25.0,OK
+tab:epsT,"eps=1,T=400",AUC fixed,0.515$\pm$0.025,0.515±0.025,OK
+tab:epsT,"eps=1,T=400",AUC cap,0.528$\pm$0.016,0.528±0.016,OK
+tab:epsT,"eps=1,T=400",Uplink fixed,271,271,OK
+tab:epsT,"eps=1,T=400",Uplink cap,94,94,OK
+tab:epsT,"eps=3,T=100",sigma,4.8,4.8,OK
+tab:epsT,"eps=3,T=100",AUC fixed,0.716$\pm$0.007,0.716±0.007,OK
+tab:epsT,"eps=3,T=100",AUC cap,0.708$\pm$0.005,0.708±0.005,OK
+tab:epsT,"eps=3,T=100",Uplink fixed,45,45,OK
+tab:epsT,"eps=3,T=100",Uplink cap,17,17,OK
+tab:epsT,"eps=3,T=200",sigma,6.6,6.6,OK
+tab:epsT,"eps=3,T=200",AUC fixed,0.708$\pm$0.006,0.708±0.006,OK
+tab:epsT,"eps=3,T=200",AUC cap,0.685$\pm$0.024,0.685±0.024,OK
+tab:epsT,"eps=3,T=200",Uplink fixed,97,97,OK
+tab:epsT,"eps=3,T=200",Uplink cap,34,34,OK
+tab:epsT,"eps=3,T=400",sigma,9.3,9.3,OK
+tab:epsT,"eps=3,T=400",AUC fixed,0.684$\pm$0.026,0.684±0.026,OK
+tab:epsT,"eps=3,T=400",AUC cap,0.678$\pm$0.015,0.678±0.015,OK
+tab:epsT,"eps=3,T=400",Uplink fixed,271,271,OK
+tab:epsT,"eps=3,T=400",Uplink cap,94,94,OK
+tab:epsT,"eps=8,T=100",sigma,2.2,2.2,OK
+tab:epsT,"eps=8,T=100",AUC fixed,0.751$\pm$0.012,0.751±0.012,OK
+tab:epsT,"eps=8,T=100",AUC cap,0.744$\pm$0.011,0.744±0.011,OK
+tab:epsT,"eps=8,T=100",Uplink fixed,45,45,OK
+tab:epsT,"eps=8,T=100",Uplink cap,17,17,OK
+tab:epsT,"eps=8,T=200",sigma,3.0,3.0,OK
+tab:epsT,"eps=8,T=200",AUC fixed,0.768$\pm$0.014,0.768±0.014,OK
+tab:epsT,"eps=8,T=200",AUC cap,0.766$\pm$0.016,0.766±0.016,OK
+tab:epsT,"eps=8,T=200",Uplink fixed,97,97,OK
+tab:epsT,"eps=8,T=200",Uplink cap,34,34,OK
+tab:epsT,"eps=8,T=400",sigma,4.1,4.1,OK
+tab:epsT,"eps=8,T=400",AUC fixed,0.764$\pm$0.024,0.764±0.024,OK
+tab:epsT,"eps=8,T=400",AUC cap,0.760$\pm$0.022,0.760±0.022,OK
+tab:epsT,"eps=8,T=400",Uplink fixed,271,271,OK
+tab:epsT,"eps=8,T=400",Uplink cap,94,94,OK
+tab:ablation,Capacity default,AUC,0.686$\pm$0.016,0.686±0.016,OK
+tab:ablation,Capacity default,MB,349,349,OK
+tab:ablation,Capacity default,Uplink,34.4,34.4,OK
+tab:ablation,Capacity default,sigma,6.64,6.64,OK
+tab:ablation,Logistic default,AUC,0.684$\pm$0.005,0.684±0.005,OK
+tab:ablation,Logistic default,MB,348,348,OK
+tab:ablation,Logistic default,Uplink,35.7,35.7,OK
+tab:ablation,Logistic default,sigma,6.64,6.64,OK
+tab:ablation,Capacity $s_{\min}$$=0.05$,AUC,0.707$\pm$0.019,0.707±0.019,OK
+tab:ablation,Capacity $s_{\min}$$=0.05$,MB,301,301,OK
+tab:ablation,Capacity $s_{\min}$$=0.05$,Uplink,18.5,18.5,OK
+tab:ablation,Capacity $s_{\min}$$=0.05$,sigma,6.64,6.64,OK
+tab:ablation,Capacity $s_{\min}$$=0.2$,AUC,0.704$\pm$0.018,0.704±0.018,OK
+tab:ablation,Capacity $s_{\min}$$=0.2$,MB,443,443,OK
+tab:ablation,Capacity $s_{\min}$$=0.2$,Uplink,67.6,67.6,OK
+tab:ablation,Capacity $s_{\min}$$=0.2$,sigma,6.64,6.64,OK
+tab:ablation,Capacity $s_{\max}$$=0.6$,AUC,0.667$\pm$0.015,0.667±0.015,OK
+tab:ablation,Capacity $s_{\max}$$=0.6$,MB,264,264,OK
+tab:ablation,Capacity $s_{\max}$$=0.6$,Uplink,33.9,33.9,OK
+tab:ablation,Capacity $s_{\max}$$=0.6$,sigma,6.64,6.64,OK
+tab:ablation,Capacity $s_{\max}$$=0.95$,AUC,0.699$\pm$0.018,0.699±0.018,OK
+tab:ablation,Capacity $s_{\max}$$=0.95$,MB,363,363,OK
+tab:ablation,Capacity $s_{\max}$$=0.95$,Uplink,34.5,34.5,OK
+tab:ablation,Capacity $s_{\max}$$=0.95$,sigma,6.64,6.64,OK
+tab:ablation,Capacity $C$$=0.5$,AUC,0.687$\pm$0.009,0.687±0.009,OK
+tab:ablation,Capacity $C$$=0.5$,MB,349,349,OK
+tab:ablation,Capacity $C$$=0.5$,Uplink,34.4,34.4,OK
+tab:ablation,Capacity $C$$=0.5$,sigma,6.64,6.64,OK
+tab:ablation,Capacity $C$$=2.0$,AUC,0.678$\pm$0.015,0.678±0.015,OK
+tab:ablation,Capacity $C$$=2.0$,MB,349,349,OK
+tab:ablation,Capacity $C$$=2.0$,Uplink,34.4,34.4,OK
+tab:ablation,Capacity $C$$=2.0$,sigma,6.64,6.64,OK
+tab:ablation,Capacity $\tau$$=5$,AUC,0.725$\pm$0.007,0.725±0.007,OK
+tab:ablation,Capacity $\tau$$=5$,MB,349,349,OK
+tab:ablation,Capacity $\tau$$=5$,Uplink,34.4,34.4,OK
+tab:ablation,Capacity $\tau$$=5$,sigma,4.77,4.77,OK
+tab:ablation,Capacity $\tau$$=20$,AUC,0.679$\pm$0.021,0.679±0.021,OK
+tab:ablation,Capacity $\tau$$=20$,MB,349,349,OK
+tab:ablation,Capacity $\tau$$=20$,Uplink,34.4,34.4,OK
+tab:ablation,Capacity $\tau$$=20$,sigma,9.31,9.31,OK
+tab:ablation,Capacity $p$$=0.3$,AUC,0.707$\pm$0.022,0.707±0.022,OK
+tab:ablation,Capacity $p$$=0.3$,MB,210,210,OK
+tab:ablation,Capacity $p$$=0.3$,Uplink,18.2,18.2,OK
+tab:ablation,Capacity $p$$=0.3$,sigma,5.20,5.20,OK
+tab:ablation,Capacity $p$$=1.0$,AUC,0.715$\pm$0.003,0.715±0.003,OK
+tab:ablation,Capacity $p$$=1.0$,MB,694,694,OK
+tab:ablation,Capacity $p$$=1.0$,Uplink,67.2,67.2,OK
+tab:ablation,Capacity $p$$=1.0$,sigma,9.34,9.34,OK
+tab:ablation,Logistic $\alpha$$=0.15$,AUC,0.700$\pm$0.020,0.700±0.020,OK
+tab:ablation,Logistic $\alpha$$=0.15$,MB,440,440,OK
+tab:ablation,Logistic $\alpha$$=0.15$,Uplink,40.9,40.9,OK
+tab:ablation,Logistic $\alpha$$=0.15$,sigma,6.64,6.64,OK
+tab:ablation,Logistic $\alpha$$=1.0$,AUC,0.671$\pm$0.031,0.671±0.031,OK
+tab:ablation,Logistic $\alpha$$=1.0$,MB,315,315,OK
+tab:ablation,Logistic $\alpha$$=1.0$,Uplink,36.5,36.5,OK
+tab:ablation,Logistic $\alpha$$=1.0$,sigma,6.64,6.64,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=12.0$,AUC,0.684$\pm$0.014,0.684±0.014,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=12.0$,MB,547,547,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=12.0$,Uplink,37.8,37.8,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=12.0$,sigma,6.64,6.64,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=21.0$,AUC,0.686$\pm$0.035,0.686±0.035,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=21.0$,MB,216,216,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=21.0$,Uplink,34.3,34.3,OK
+tab:ablation,Logistic $\gamma_{\mathrm{ref}}$$=21.0$,sigma,6.64,6.64,OK
+tab:robust,Default,AUC fixed,0.709$\pm$0.011,0.709±0.011,OK
+tab:robust,Default,AUC cap,0.686$\pm$0.016,0.686±0.016,OK
+tab:robust,Default,Uplink fixed,97,97,OK
+tab:robust,Default,Uplink cap,34,34,OK
+tab:robust,Default,Reduction %,64\%,64,OK
+tab:robust,N{=}50,AUC fixed,0.662$\pm$0.023,0.662±0.023,OK
+tab:robust,N{=}50,AUC cap,0.665$\pm$0.028,0.665±0.028,OK
+tab:robust,N{=}50,Uplink fixed,333,333,OK
+tab:robust,N{=}50,Uplink cap,118,118,OK
+tab:robust,N{=}50,Reduction %,65\%,65,OK
+tab:robust,N{=}100,AUC fixed,0.591$\pm$0.006,0.591±0.006,OK
+tab:robust,N{=}100,AUC cap,0.527$\pm$0.025,0.527±0.025,OK
+tab:robust,N{=}100,Uplink fixed,662,662,OK
+tab:robust,N{=}100,Uplink cap,230,230,OK
+tab:robust,N{=}100,Reduction %,65\%,65,OK
+tab:robust,alpha{=}0.1,AUC fixed,0.667$\pm$0.010,0.667±0.010,OK
+tab:robust,alpha{=}0.1,AUC cap,0.642$\pm$0.023,0.642±0.023,OK
+tab:robust,alpha{=}0.1,Uplink fixed,97,97,OK
+tab:robust,alpha{=}0.1,Uplink cap,34,34,OK
+tab:robust,alpha{=}0.1,Reduction %,64\%,64,OK
+tab:robust,alpha{=}1.0,AUC fixed,0.728$\pm$0.006,0.728±0.006,OK
+tab:robust,alpha{=}1.0,AUC cap,0.731$\pm$0.020,0.731±0.020,OK
+tab:robust,alpha{=}1.0,Uplink fixed,97,97,OK
+tab:robust,alpha{=}1.0,Uplink cap,34,34,OK
+tab:robust,alpha{=}1.0,Reduction %,64\%,64,OK
+tab:robust,blockage,AUC fixed,0.706$\pm$0.011,0.706±0.011,OK
+tab:robust,blockage,AUC cap,0.689$\pm$0.009,0.689±0.009,OK
+tab:robust,blockage,Uplink fixed,16963,16963,OK
+tab:robust,blockage,Uplink cap,9703,9703,OK
+tab:robust,blockage,Reduction %,43\%,43,OK
+tab:robust,Inter-cell,AUC fixed,0.723$\pm$0.007,0.723±0.007,OK
+tab:robust,Inter-cell,AUC cap,0.690$\pm$0.004,0.690±0.004,OK
+tab:robust,Inter-cell,Uplink fixed,819,819,OK
+tab:robust,Inter-cell,Uplink cap,344,344,OK
+tab:robust,Inter-cell,Reduction %,58\%,58,OK
+tab:robust,Blockage + interference,AUC fixed,0.714$\pm$0.018,0.714±0.018,OK
+tab:robust,Blockage + interference,AUC cap,0.672$\pm$0.027,0.672±0.027,OK
+tab:robust,Blockage + interference,Uplink fixed,21299,21299,OK
+tab:robust,Blockage + interference,Uplink cap,14069,14069,OK
+tab:robust,Blockage + interference,Reduction %,34\%,34,OK
+tab:external,DP-FedAvg \(dense,1,0.696$\pm$0.021,0.696±0.021,OK
+tab:external,DP-FedAvg \(dense,2,0.249,0.249,OK
+tab:external,DP-FedAvg \(dense,3,1230,1230,OK
+tab:external,DP-FedAvg \(dense,4,372.7,372.7,OK
+tab:external,DP-FedAvg \(dense,5,1.00,1.00,OK
+tab:external,DP-FedAvg \+ adaptive,1,0.696$\pm$0.007,0.696±0.007,OK
+tab:external,DP-FedAvg \+ adaptive,2,0.243,0.243,OK
+tab:external,DP-FedAvg \+ adaptive,3,1230,1230,OK
+tab:external,DP-FedAvg \+ adaptive,4,372.7,372.7,OK
+tab:external,DP-FedAvg \+ adaptive,5,0.81,0.81,OK
+tab:external,Fed-SMP,1,0.704$\pm$0.012,0.704±0.012,OK
+tab:external,Fed-SMP,2,0.270,0.270,OK
+tab:external,Fed-SMP,3,339,339,OK
+tab:external,Fed-SMP,4,103.9,103.9,OK
+tab:external,Fed-SMP,5,0.31,0.31,OK
+tab:external,"QSGD, matched",1,0.690$\pm$0.023,0.690±0.023,OK
+tab:external,"QSGD, matched",2,0.223,0.223,OK
+tab:external,"QSGD, matched",3,341,341,OK
+tab:external,"QSGD, matched",4,104.2,104.2,OK
+tab:external,"QSGD, matched",5,0.81,0.81,OK
+tab:external,"QSGD, capacity",1,0.666$\pm$0.016,0.666±0.016,OK
+tab:external,"QSGD, capacity",2,0.194,0.194,OK
+tab:external,"QSGD, capacity",3,340,340,OK
+tab:external,"QSGD, capacity",4,36.5,36.5,OK
+tab:external,"QSGD, capacity",5,0.12,0.12,OK
+tab:external,"Fixed ratio, public",1,0.708$\pm$0.008,0.708±0.008,OK
+tab:external,"Fixed ratio, public",2,0.249,0.249,OK
+tab:external,"Fixed ratio, public",3,339,339,OK
+tab:external,"Fixed ratio, public",4,103.9,103.9,OK
+tab:external,"Fixed ratio, public",5,0.31,0.31,OK
+tab:external,"Capacity map, random mask",1,0.701$\pm$0.020,0.701±0.020,OK
+tab:external,"Capacity map, random mask",2,0.247,0.247,OK
+tab:external,"Capacity map, random mask",3,339,339,OK
+tab:external,"Capacity map, random mask",4,37.8,37.8,OK
+tab:external,"Capacity map, random mask",5,0.44,0.44,OK
+tab:external,CGFL \+ adaptive,1,0.700$\pm$0.014,0.700±0.014,OK
+tab:external,CGFL \+ adaptive,2,0.234,0.234,OK
+tab:external,CGFL \+ adaptive,3,339,339,OK
+tab:external,CGFL \+ adaptive,4,37.8,37.8,OK
+tab:external,CGFL \+ adaptive,5,0.62,0.62,OK
+tab:external,CGFL \(capacity map,1,0.695$\pm$0.017,0.695±0.017,OK
+tab:external,CGFL \(capacity map,2,0.266,0.266,OK
+tab:external,CGFL \(capacity map,3,339,339,OK
+tab:external,CGFL \(capacity map,4,37.8,37.8,OK
+tab:external,exploration,1,0.701$\pm$0.006,0.701±0.006,OK
+tab:external,exploration,2,0.294,0.294,OK
+tab:external,exploration,3,349,349,OK
+tab:external,exploration,4,34.4,34.4,OK
+tab:bestcfg,^Default DP\-FedAvg,2,0.696$\pm$0.021,0.696±0.021,OK
+tab:bestcfg,^Default DP\-FedAvg,3,0.249,0.249,OK
+tab:bestcfg,^Default DP\-FedAvg,4,372.7,372.7,OK
+tab:bestcfg,^Default DP\-FedAvg,5,6.81,6.81,OK
+tab:bestcfg,^Default Fixed\ ratio,2,0.708$\pm$0.008,0.708±0.008,OK
+tab:bestcfg,^Default Fixed\ ratio,3,0.249,0.249,OK
+tab:bestcfg,^Default Fixed\ ratio,4,103.9,103.9,OK
+tab:bestcfg,^Default Fixed\ ratio,5,6.81,6.81,OK
+tab:bestcfg,^Default CGFL,2,0.695$\pm$0.017,0.695±0.017,OK
+tab:bestcfg,^Default CGFL,3,0.266,0.266,OK
+tab:bestcfg,^Default CGFL,4,37.8,37.8,OK
+tab:bestcfg,^Default CGFL,5,6.81,6.81,OK
+tab:bestcfg,^Selected DP\-FedAvg,2,0.715$\pm$0.008,0.715±0.008,OK
+tab:bestcfg,^Selected DP\-FedAvg,3,0.266,0.266,OK
+tab:bestcfg,^Selected DP\-FedAvg,4,372.7,372.7,OK
+tab:bestcfg,^Selected DP\-FedAvg,5,4.89,4.89,OK
+tab:bestcfg,^Selected Fixed\ ratio,2,0.719$\pm$0.007,0.719±0.007,OK
+tab:bestcfg,^Selected Fixed\ ratio,3,0.258,0.258,OK
+tab:bestcfg,^Selected Fixed\ ratio,4,103.9,103.9,OK
+tab:bestcfg,^Selected Fixed\ ratio,5,4.89,4.89,OK
+tab:bestcfg,^Selected CGFL,2,0.721$\pm$0.009,0.721±0.009,OK
+tab:bestcfg,^Selected CGFL,3,0.275,0.275,OK
+tab:bestcfg,^Selected CGFL,4,37.8,37.8,OK
+tab:bestcfg,^Selected CGFL,5,4.89,4.89,OK
+tab:multilabel,FedAvg [none],AUC,0.883$\pm$0.002,0.883±0.002,OK
+tab:multilabel,FedAvg [none],F1,0.647,0.647,OK
+tab:multilabel,FedAvg [none],MB,1230,1230,OK
+tab:multilabel,FedAvg [none],Uplink,372.7,372.7,OK
+tab:multilabel,FedAvg [none],p,0.06,0.06,OK
+tab:multilabel,Fixed [none],AUC,0.880$\pm$0.002,0.880±0.002,OK
+tab:multilabel,Fixed [none],F1,0.646,0.646,OK
+tab:multilabel,Fixed [none],MB,530,530,OK
+tab:multilabel,Fixed [none],Uplink,162.3,162.3,OK
+tab:multilabel,Fixed [none],p,0.06,0.06,OK
+tab:multilabel,Capacity [none],AUC,0.879$\pm$0.002,0.879±0.002,OK
+tab:multilabel,Capacity [none],F1,0.643,0.643,OK
+tab:multilabel,Capacity [none],MB,529,529,OK
+tab:multilabel,Capacity [none],Uplink,59.1,59.1,OK
+tab:multilabel,DP-FedAvg [record],AUC,0.774$\pm$0.005,0.774±0.005,OK
+tab:multilabel,DP-FedAvg [record],F1,0.418,0.418,OK
+tab:multilabel,DP-FedAvg [record],MB,1230,1230,OK
+tab:multilabel,DP-FedAvg [record],Uplink,372.7,372.7,OK
+tab:multilabel,DP-FedAvg [record],p,0.12,0.12,OK
+tab:multilabel,Fixed [record],AUC,0.783$\pm$0.007,0.783±0.007,OK
+tab:multilabel,Fixed [record],F1,0.443,0.443,OK
+tab:multilabel,Fixed [record],MB,339,339,OK
+tab:multilabel,Fixed [record],Uplink,103.9,103.9,OK
+tab:multilabel,Fixed [record],p,1.00,1.00,OK
+tab:multilabel,CGFL [record],AUC,0.783$\pm$0.010,0.783±0.010,OK
+tab:multilabel,CGFL [record],F1,0.473,0.473,OK
+tab:multilabel,CGFL [record],MB,339,339,OK
+tab:multilabel,CGFL [record],Uplink,37.8,37.8,OK
+tab:diag,FedAvg [none],AUC,0.856$\pm$0.004,0.856±0.004,OK
+tab:diag,FedAvg [none],Rare AUC,0.844,0.844,OK
+tab:diag,FedAvg [none],F1,0.158,0.158,OK
+tab:diag,FedAvg [none],MB,1270,1270,OK
+tab:diag,FedAvg [none],Uplink,384.9,384.9,OK
+tab:diag,FedAvg [none],p,0.06,0.06,OK
+tab:diag,Fixed [none],AUC,0.851$\pm$0.003,0.851±0.003,OK
+tab:diag,Fixed [none],Rare AUC,0.838,0.838,OK
+tab:diag,Fixed [none],F1,0.156,0.156,OK
+tab:diag,Fixed [none],MB,547,547,OK
+tab:diag,Fixed [none],Uplink,167.6,167.6,OK
+tab:diag,Fixed [none],p,0.06,0.06,OK
+tab:diag,Capacity [none],AUC,0.850$\pm$0.003,0.850±0.003,OK
+tab:diag,Capacity [none],Rare AUC,0.837,0.837,OK
+tab:diag,Capacity [none],F1,0.154,0.154,OK
+tab:diag,Capacity [none],MB,547,547,OK
+tab:diag,Capacity [none],Uplink,61.0,61.0,OK
+tab:diag,DP-FedAvg [record],AUC,0.665$\pm$0.031,0.665±0.031,OK
+tab:diag,DP-FedAvg [record],Rare AUC,0.605,0.605,OK
+tab:diag,DP-FedAvg [record],F1,0.063,0.063,OK
+tab:diag,DP-FedAvg [record],MB,1270,1270,OK
+tab:diag,DP-FedAvg [record],Uplink,384.9,384.9,OK
+tab:diag,DP-FedAvg [record],p,0.19,0.19,OK
+tab:diag,Fixed [record],AUC,0.699$\pm$0.028,0.699±0.028,OK
+tab:diag,Fixed [record],Rare AUC,0.675,0.675,OK
+tab:diag,Fixed [record],F1,0.072,0.072,OK
+tab:diag,Fixed [record],MB,350,350,OK
+tab:diag,Fixed [record],Uplink,107.3,107.3,OK
+tab:diag,Fixed [record],p,0.81,0.81,OK
+tab:diag,CGFL [record],AUC,0.694$\pm$0.018,0.694±0.018,OK
+tab:diag,CGFL [record],Rare AUC,0.666,0.666,OK
+tab:diag,CGFL [record],F1,0.075,0.075,OK
+tab:diag,CGFL [record],MB,350,350,OK
+tab:diag,CGFL [record],Uplink,39.1,39.1,OK
+tab:cinc,FedAvg [none],AUC,0.858$\pm$0.006,0.858±0.006,OK
+tab:cinc,FedAvg [none],MB,747,747,OK
+tab:cinc,FedAvg [none],Uplink,182.5,182.5,OK
+tab:cinc,FedAvg [none],p,0.06,0.06,OK
+tab:cinc,FedAvg [none],CPSC,0.877,0.877,OK
+tab:cinc,FedAvg [none],CPSC-Extra,0.818,0.818,OK
+tab:cinc,FedAvg [none],Chapman,0.886,0.886,OK
+tab:cinc,FedAvg [none],Georgia,0.842,0.842,OK
+tab:cinc,FedAvg [none],Ningbo,0.847,0.847,OK
+tab:cinc,FedAvg [none],PTB-XL,0.873,0.873,OK
+tab:cinc,Fixed ratio [none],AUC,0.850$\pm$0.008,0.850±0.008,OK
+tab:cinc,Fixed ratio [none],MB,343,343,OK
+tab:cinc,Fixed ratio [none],Uplink,76.4,76.4,OK
+tab:cinc,Fixed ratio [none],p,0.06,0.06,OK
+tab:cinc,Fixed ratio [none],CPSC,0.866,0.866,OK
+tab:cinc,Fixed ratio [none],CPSC-Extra,0.818,0.818,OK
+tab:cinc,Fixed ratio [none],Chapman,0.877,0.877,OK
+tab:cinc,Fixed ratio [none],Georgia,0.833,0.833,OK
+tab:cinc,Fixed ratio [none],Ningbo,0.838,0.838,OK
+tab:cinc,Fixed ratio [none],PTB-XL,0.867,0.867,OK
+tab:cinc,Capacity map [none],AUC,0.847$\pm$0.008,0.847±0.008,OK
+tab:cinc,Capacity map [none],MB,343,343,OK
+tab:cinc,Capacity map [none],Uplink,31.2,31.2,OK
+tab:cinc,Capacity map [none],CPSC,0.865,0.865,OK
+tab:cinc,Capacity map [none],CPSC-Extra,0.819,0.819,OK
+tab:cinc,Capacity map [none],Chapman,0.874,0.874,OK
+tab:cinc,Capacity map [none],Georgia,0.829,0.829,OK
+tab:cinc,Capacity map [none],Ningbo,0.835,0.835,OK
+tab:cinc,Capacity map [none],PTB-XL,0.866,0.866,OK
+tab:cinc,DP-FedAvg [record],AUC,0.767$\pm$0.005,0.767±0.005,OK
+tab:cinc,DP-FedAvg [record],MB,747,747,OK
+tab:cinc,DP-FedAvg [record],Uplink,182.5,182.5,OK
+tab:cinc,DP-FedAvg [record],p,0.06,0.06,OK
+tab:cinc,DP-FedAvg [record],CPSC,0.790,0.790,OK
+tab:cinc,DP-FedAvg [record],CPSC-Extra,0.755,0.755,OK
+tab:cinc,DP-FedAvg [record],Chapman,0.803,0.803,OK
+tab:cinc,DP-FedAvg [record],Georgia,0.749,0.749,OK
+tab:cinc,DP-FedAvg [record],Ningbo,0.759,0.759,OK
+tab:cinc,DP-FedAvg [record],PTB-XL,0.789,0.789,OK
+tab:cinc,Fixed ratio [record],AUC,0.750$\pm$0.008,0.750±0.008,OK
+tab:cinc,Fixed ratio [record],MB,220,220,OK
+tab:cinc,Fixed ratio [record],Uplink,48.9,48.9,OK
+tab:cinc,Fixed ratio [record],p,0.44,0.44,OK
+tab:cinc,Fixed ratio [record],CPSC,0.766,0.766,OK
+tab:cinc,Fixed ratio [record],CPSC-Extra,0.740,0.740,OK
+tab:cinc,Fixed ratio [record],Chapman,0.791,0.791,OK
+tab:cinc,Fixed ratio [record],Georgia,0.723,0.723,OK
+tab:cinc,Fixed ratio [record],Ningbo,0.738,0.738,OK
+tab:cinc,Fixed ratio [record],PTB-XL,0.777,0.777,OK
+tab:cinc,Random ratio [record],AUC,0.744$\pm$0.004,0.744±0.004,OK
+tab:cinc,Random ratio [record],MB,218,218,OK
+tab:cinc,Random ratio [record],Uplink,50.2,50.2,OK
+tab:cinc,Random ratio [record],p,1.00,1.00,OK
+tab:cinc,Random ratio [record],CPSC,0.750,0.750,OK
+tab:cinc,Random ratio [record],CPSC-Extra,0.740,0.740,OK
+tab:cinc,Random ratio [record],Chapman,0.788,0.788,OK
+tab:cinc,Random ratio [record],Georgia,0.727,0.727,OK
+tab:cinc,Random ratio [record],Ningbo,0.734,0.734,OK
+tab:cinc,Random ratio [record],PTB-XL,0.769,0.769,OK
+tab:cinc,QSGD [record],AUC,0.755$\pm$0.015,0.755±0.015,OK
+tab:cinc,QSGD [record],MB,221,221,OK
+tab:cinc,QSGD [record],Uplink,19.5,19.5,OK
+tab:cinc,QSGD [record],p,0.31,0.31,OK
+tab:cinc,QSGD [record],CPSC,0.777,0.777,OK
+tab:cinc,QSGD [record],CPSC-Extra,0.740,0.740,OK
+tab:cinc,QSGD [record],Chapman,0.798,0.798,OK
+tab:cinc,QSGD [record],Georgia,0.741,0.741,OK
+tab:cinc,QSGD [record],Ningbo,0.751,0.751,OK
+tab:cinc,QSGD [record],PTB-XL,0.782,0.782,OK
+tab:cinc,CGFL [record],AUC,0.746$\pm$0.013,0.746±0.013,OK
+tab:cinc,CGFL [record],MB,220,220,OK
+tab:cinc,CGFL [record],Uplink,20.0,20.0,OK
+tab:cinc,CGFL [record],CPSC,0.763,0.763,OK
+tab:cinc,CGFL [record],CPSC-Extra,0.715,0.715,OK
+tab:cinc,CGFL [record],Chapman,0.786,0.786,OK
+tab:cinc,CGFL [record],Georgia,0.725,0.725,OK
+tab:cinc,CGFL [record],Ningbo,0.737,0.737,OK
+tab:cinc,CGFL [record],PTB-XL,0.773,0.773,OK
+tab:resnet,CNN DP-FedAvg,AUC,0.715$\pm$0.008,0.715±0.008,OK
+tab:resnet,CNN DP-FedAvg,F1,0.266,0.266,OK
+tab:resnet,CNN DP-FedAvg,MB,"1{,}230",1230,OK
+tab:resnet,CNN DP-FedAvg,Uplink,372.7,372.7,OK
+tab:resnet,CNN DP-FedAvg,p,0.31,0.31,OK
+tab:resnet,CNN Fixed,AUC,0.719$\pm$0.007,0.719±0.007,OK
+tab:resnet,CNN Fixed,F1,0.258,0.258,OK
+tab:resnet,CNN Fixed,MB,339,339,OK
+tab:resnet,CNN Fixed,Uplink,103.9,103.9,OK
+tab:resnet,CNN Fixed,p,0.63,0.62,OK
+tab:resnet,CNN CGFL,AUC,0.721$\pm$0.009,0.721±0.009,OK
+tab:resnet,CNN CGFL,F1,0.275,0.275,OK
+tab:resnet,CNN CGFL,MB,339,339,OK
+tab:resnet,CNN CGFL,Uplink,37.8,37.8,OK
+tab:resnet,ResNet DP-FedAvg,AUC,0.679$\pm$0.018,0.679±0.018,OK
+tab:resnet,ResNet DP-FedAvg,F1,0.197,0.197,OK
+tab:resnet,ResNet DP-FedAvg,MB,"18{,}995",18995,OK
+tab:resnet,ResNet DP-FedAvg,Uplink,"5{,}757",5757,OK
+tab:resnet,ResNet DP-FedAvg,p,1.00,1.00,OK
+tab:resnet,ResNet Fixed,AUC,0.694$\pm$0.015,0.694±0.015,OK
+tab:resnet,ResNet Fixed,F1,0.212,0.212,OK
+tab:resnet,ResNet Fixed,MB,"5{,}236",5236,OK
+tab:resnet,ResNet Fixed,Uplink,"1{,}604",1604,OK
+tab:resnet,ResNet Fixed,p,0.06,0.06,OK
+tab:resnet,ResNet CGFL,AUC,0.675$\pm$0.040,0.675±0.040,OK
+tab:resnet,ResNet CGFL,F1,0.183,0.183,OK
+tab:resnet,ResNet CGFL,MB,"5{,}231",5231,OK
+tab:resnet,ResNet CGFL,Uplink,584.2,584.2,OK
+tab:resnet,ResNet CGFL norm. agg.,AUC,0.521$\pm$0.027,0.521±0.027,OK
+tab:resnet,ResNet CGFL norm. agg.,F1,0.075,0.075,OK
+tab:resnet,ResNet CGFL norm. agg.,MB,"5{,}231",5231,OK
+tab:resnet,ResNet CGFL norm. agg.,Uplink,584.2,584.2,OK
+tab:resnet,ResNet CGFL norm. agg.,p,0.06,0.06,OK
+tab:normagg,"PTB-XL, DP, default ($\tau=10$)",fixed weighted,0.708,0.708,OK
+tab:normagg,"PTB-XL, DP, default ($\tau=10$)",fixed normalised,0.513,0.513,OK
+tab:normagg,"PTB-XL, DP, default ($\tau=10$)",capacity weighted,0.695,0.695,OK
+tab:normagg,"PTB-XL, DP, default ($\tau=10$)",capacity normalised,0.502,0.502,OK
+tab:normagg,"PTB-XL, DP, tuned ($\tau=5$)",fixed weighted,0.719,0.719,OK
+tab:normagg,"PTB-XL, DP, tuned ($\tau=5$)",fixed normalised,0.547,0.547,OK
+tab:normagg,"PTB-XL, DP, tuned ($\tau=5$)",capacity weighted,0.721,0.721,OK
+tab:normagg,"PTB-XL, DP, tuned ($\tau=5$)",capacity normalised,0.507,0.507,OK
+tab:normagg,"CinC~2021, DP",fixed weighted,0.750,0.750,OK
+tab:normagg,"CinC~2021, DP",fixed normalised,0.681,0.681,OK
+tab:normagg,"CinC~2021, DP",capacity weighted,0.746,0.746,OK
+tab:normagg,"CinC~2021, DP",capacity normalised,0.682,0.682,OK
+tab:normagg,"PTB-XL, non-private",capacity weighted,0.848,0.848,OK
+tab:normagg,"PTB-XL, non-private",capacity normalised,0.854,0.854,OK
+tab:e2e,0 (uplink only) 10 MHz,DP-FedAvg,373,373,OK
+tab:e2e,0 (uplink only) 10 MHz,Fixed,104,104,OK
+tab:e2e,0 (uplink only) 10 MHz,CGFL,\textbf{38},38,OK
+tab:e2e,0 (uplink only) 10 MHz,vs Fixed %,$-64\%$,-63,OK
+tab:e2e,0 (uplink only) 10 MHz,vs BWA %,$-61\%$,-61,OK
+tab:e2e,0 (uplink only) 1 MHz,DP-FedAvg,3727,3727,OK
+tab:e2e,0 (uplink only) 1 MHz,Fixed,1039,1039,OK
+tab:e2e,0 (uplink only) 1 MHz,CGFL,\textbf{378},378,OK
+tab:e2e,0 (uplink only) 1 MHz,vs Fixed %,$-64\%$,-64,OK
+tab:e2e,0 (uplink only) 1 MHz,vs BWA %,$-61\%$,-61,OK
+tab:e2e,"0.38\,s (T4 GPU) 10 MHz",DP-FedAvg,449,449,OK
+tab:e2e,"0.38\,s (T4 GPU) 10 MHz",Fixed,180,180,OK
+tab:e2e,"0.38\,s (T4 GPU) 10 MHz",CGFL,\textbf{114},114,OK
+tab:e2e,"0.38\,s (T4 GPU) 10 MHz",vs Fixed %,$-37\%$,-37,OK
+tab:e2e,"0.38\,s (T4 GPU) 10 MHz",vs BWA %,$-34\%$,-34,OK
+tab:e2e,"0.38\,s (T4 GPU) 1 MHz",DP-FedAvg,3803,3803,OK
+tab:e2e,"0.38\,s (T4 GPU) 1 MHz",Fixed,1115,1115,OK
+tab:e2e,"0.38\,s (T4 GPU) 1 MHz",CGFL,\textbf{454},454,OK
+tab:e2e,"0.38\,s (T4 GPU) 1 MHz",vs Fixed %,$-59\%$,-59,OK
+tab:e2e,"0.38\,s (T4 GPU) 1 MHz",vs BWA %,$-57\%$,-57,OK
+tab:e2e,"0.92\,s (2 vCPU) 10 MHz",DP-FedAvg,557,557,OK
+tab:e2e,"0.92\,s (2 vCPU) 10 MHz",Fixed,288,288,OK
+tab:e2e,"0.92\,s (2 vCPU) 10 MHz",CGFL,\textbf{222},222,OK
+tab:e2e,"0.92\,s (2 vCPU) 10 MHz",vs Fixed %,$-23\%$,-23,OK
+tab:e2e,"0.92\,s (2 vCPU) 10 MHz",vs BWA %,$-21\%$,-21,OK
+tab:e2e,"0.92\,s (2 vCPU) 1 MHz",DP-FedAvg,3911,3911,OK
+tab:e2e,"0.92\,s (2 vCPU) 1 MHz",Fixed,1223,1223,OK
+tab:e2e,"0.92\,s (2 vCPU) 1 MHz",CGFL,\textbf{562},562,OK
+tab:e2e,"0.92\,s (2 vCPU) 1 MHz",vs Fixed %,$-54\%$,-54,OK
+tab:e2e,"0.92\,s (2 vCPU) 1 MHz",vs BWA %,$-51\%$,-51,OK

@@ -1,0 +1,8 @@
+# Tested with the Kaggle "Latest Container Image" (NVIDIA T4) and, for the audit scripts, these versions:
+torch>=2.1
+numpy>=1.24
+scipy>=1.10
+scikit-learn>=1.3
+pandas>=2.0
+# optional, only for the independent privacy-accountant cross-check
+opacus>=1.4

@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this code or these results, please cite this software."
+title: "CGFL: channel-aware gradient sparsification with masked record-level differential privacy for federated learning over 6G uplinks (code and results)"
+type: software
+license: MIT
+version: "1.0.0"
+date-released: "2026-11-17"
+authors:
+  - family-names: "Mughal"
+    given-names: "Muhammad Irfan Younas"
+    affiliation: "Department of Computer Systems Engineering, Sukkur IBA University, Pakistan"
+    orcid: "https://orcid.org/0000-0003-3743-4710"
+keywords:
+  - federated learning
+  - differential privacy
+  - gradient sparsification
+  - 6G
+  - ECG classification
+  - healthcare AI

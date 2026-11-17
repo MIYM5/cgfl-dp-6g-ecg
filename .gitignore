@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+ckpt/
+*_ck/
+smoke/
+rerun/
+*.npz
+*.pt
+records100/
+records500/
