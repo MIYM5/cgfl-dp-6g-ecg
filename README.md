@@ -14,6 +14,7 @@ record-level differential privacy for federated learning over 6G uplinks, evalua
 | `audit_tables.py` | Recomputes every cell of the paper's result tables from `results/` and flags mismatches |
 | `make_fig_data.py` | Writes the data behind every chart of the paper (`fig_data/*.csv`) from `results/` |
 | `audit_claims.py` | Recomputes the pooled in-text statistics (53 matched pairs, CI, sign test, noise multipliers) |
+| `test_privacy.py` | Privacy checks: accountant vs. Opacus, clipping of masked per-example gradients, noise only on masked coordinates |
 | `repro_check.py` | Compares freshly re-run results with the archived ones |
 | `wireless_verify.py` | Re-derives Table 2 (wireless baselines) and the Section VI proxy statistics from the code |
 | `cgfl_rerun_check.ipynb` | Kaggle notebook: GPU re-run of two archived runs + comparison |
@@ -54,6 +55,25 @@ for parallel GPUs) and `summarize` prints the aggregated table. All reported run
 python cgfl.py grid      --stage main --data ptbxl100.npz --results results --device cuda:0
 python cgfl.py summarize --stage main --data ptbxl100.npz --results results
 ```
+
+## Version 1.1 additions
+All new options default to the v1.0 behaviour, so every v1.0 run ID and result is unchanged.
+
+| Option / command | What it does |
+|---|---|
+| `--method noiseaware` (`--na_sref`, `--na_a`) | Noise-aware retention: each client sends the smaller of its rate cap and the retention its DP noise-to-signal ratio justifies; public inputs only |
+| `--method wei` (`--wei_V`) | Baseline after Wei et al. (2024): per-client rate by drift-plus-penalty with average-delay queues; random mask fixed before local training; 1-bit-per-parameter mask counted in the payload |
+| `--method cheng --mask topk --blur B` | Baseline after Cheng et al. (2022): bounded-local-update regularisation and sparsification, one ratio for all clients |
+| `--agg damped --agg_mu M` | Damped per-coordinate normalisation between weighted (M = 1) and fully normalised (M = 0) aggregation |
+| `--server_mom B` | Server momentum (use `--server_lr 1-B`) |
+| `--smin_size 1` | Size-aware floor for small clients |
+| `--csi_err E --csi_backoff_db X --harq_max K` | Imperfect CSI (MMSE estimate), rate back-off, HARQ retransmissions on fresh fading, drop after K attempts |
+| `--mq_every K` | Measures every K rounds the gradient energy kept by the public mask vs. a random mask (validation data) |
+| `resplit_cinc` | Patient-wise split of the PTB-XL institution inside the CinC-2021 file (`--cinc_split patient`) |
+| saved per run | `<id>_probs.npz` (validation and test probabilities); multi-label F1 at validation-tuned thresholds; per-hospital AUC on PTB-XL |
+
+Stages, in order (later stages use the tuned values selected on validation AUC by earlier ones):
+`v11_tune`, `v11_e`, `v11_d`, `v11_b4`, `v11_h` (20 seeds), `v11_h_best`, `v11_cinc` (needs the patient-wise CinC file), `v11_f`.
 
 ## Auditing the paper against the results
 ```bash

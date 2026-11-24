@@ -287,6 +287,33 @@ def prep_cinc(out, root=None, threads=8, min_pos=20, min_sites=4, min_site=200, 
     shutil.rmtree(cache, ignore_errors=True)   # keep the notebook output small
 
 
+def resplit_cinc(src, ptbxl_root, out):
+    """Patient-wise split of the PTB-XL institution inside the CinC-2021 npz. Its records (HRxxxxx =
+    PTB-XL ecg_id) take PTB-XL's own patient-stratified folds (1-8 train, 9 validation, 10 test), so no patient
+    is in two splits. Other institutions keep their recording-level split (CinC-2021 has no patient IDs).
+    The signals are not re-standardised (the training statistics move by a negligible amount)."""
+    import pandas as pd
+    z = dict(np.load(src))
+    db = pd.read_csv(os.path.join(ptbxl_root, "ptbxl_database.csv"), index_col="ecg_id")
+    fold = z["fold"].copy()
+    hr = np.array([r.startswith("HR") for r in z["rec"]])
+    ids = np.array([int(r[2:]) for r in z["rec"][hr]])
+    sf = db.loc[ids, "strat_fold"].to_numpy()
+    fold[hr] = np.where(sf <= 8, 1, sf)
+    pat = db.loc[ids, "patient_id"].to_numpy()
+    for f1, f2 in [(1, 9), (1, 10), (9, 10)]:
+        assert not (set(pat[fold[hr] == f1]) & set(pat[fold[hr] == f2])), "patient overlap after resplit"
+    old = z["fold"][hr]
+    tr_old = set(pat[old <= 8])
+    leak = int(sum(p in tr_old for p in pat[old == 10]))
+    print(f"record-level split had {leak}/{int((old == 10).sum())} PTB-XL test records whose patient is also in training")
+    print(f"PTB-XL site: {hr.sum()} records, {len(set(pat))} patients; moved {int((old != fold[hr]).sum())} records; "
+          f"train/val/test = {[(fold[hr] == f).sum() for f in (1, 9, 10)]}")
+    z.update(fold=fold, split_kind=np.array("patient"))
+    np.savez(out, **z)
+    print("saved", out)
+
+
 def read_wfdb16(base):
     """Minimal reader for PTB-XL WFDB records (format 16, interleaved int16) -> (12, L) in mV.
     Avoids needing `pip install wfdb` (Kaggle sessions without internet)."""
@@ -325,7 +352,7 @@ def load_data(path, synthetic, device, labels=None):
             return dict(site_cls=site_cls, ann_va=site_cls[S[va]], ann_te=site_cls[S[te]],Xtr=T(X[tr]), ytr=T(y[tr]), Xva=T(X[va]), yva=T(y[va]), Xte=T(X[te]), yte=T(y[te]),
                         Ytr=T(Y[tr]), Yva=T(Y[va]), Yte=T(Y[te]), site_tr=d["site"][tr], site_te=d["site"][te],
                         site_names=[str(s) for s in d["site_names"]], classes=[str(c) for c in d["classes"]],
-                        kind="cinc")
+                        kind="cinc", split_kind=str(d["split_kind"]) if "split_kind" in d.files else "record")
     tr, va, te = fold <= 8, fold == 9, fold == 10
     T = lambda a: torch.as_tensor(a, device=device)
     D = dict(Xtr=T(X[tr]), ytr=T(y[tr]), Xva=T(X[va]), yva=T(y[va]), Xte=T(X[te]), yte=T(y[te]))
@@ -442,6 +469,7 @@ class Channel:
             los = self.g.random(self.n) < self.p_los
             pl = np.where(los, self.pl_los, self.pl_nlos)
         fad = self.g.exponential(1.0, self.n)  # |h|^2 ~ Exp(1), Rayleigh
+        self.last_fad = fad                    # kept for the CSI-error model (no extra random draws)
         snr = self.ptx - pl - self.noise_dbm + 10 * np.log10(fad)
         if self.scenario in ("interf", "blockage_interf"):  # random-activity inter-cell interference
             i_lin = 10 ** (self.inr / 10) * self.g.exponential(1.0, self.n) * (self.g.random(self.n) < .5)
@@ -470,8 +498,41 @@ def retention(method, snr_db, a, rng, s_bar):
         return rng.uniform(s_bar - half, s_bar + half, len(snr_db))
     if method in ("capacity", "qsgd_cap"):       # closed form from the latency-constrained problem
         r = capacity_bits(snr_db, a.bw_user)
-        return np.clip(a._tmax_coef * r, smin, smax)
+        # size-aware floor (--smin_size 1): per-client floors a._smin_k, kappa re-calibrated
+        return np.clip(a._tmax_coef * r, getattr(a, "_smin_k", smin), smax)
+    if method == "noiseaware":   # problem P2: min{rate cap, noise-optimal retention}, then [smin, smax]
+        r = capacity_bits(snr_db, a.bw_user)
+        return np.clip(np.minimum(a._na_ssharp, a._na_coef * r), smin, smax)
     raise ValueError(method)
+
+
+# ---- calibration helpers for the new policies (all inputs are public) ----------------------
+def calib_snr(a, n_clients, seed, draws=400):
+    """The calibration channel draws used by `calibrate` (same distances, independent fading), as (draws, N)."""
+    ch = Channel(n_clients, seed, a.scenario)
+    ch.g = np.random.default_rng(seed + 12345)
+    return np.stack([ch.snr_db() for _ in range(draws)])
+
+
+def bisect_coef(ret_fn, s_bar, lo=1e-15, hi=1e-3, it=200):
+    """Coefficient c (log-bisection) with mean(ret_fn(c)) = s_bar; ret_fn is non-decreasing in c."""
+    for _ in range(it):
+        mid = math.sqrt(lo * hi)
+        lo, hi = (mid, hi) if ret_fn(mid).mean() < s_bar else (lo, mid)
+    return math.sqrt(lo * hi)
+
+
+def noise_sharp(pi, sigma, q, nk, sref, a_exp):
+    """Noise-optimal retention of problem P2 with phi(s) = s**a_exp (0 < a_exp < 1) and G_k = C:
+    phi'(s) = nu_k  ->  s_k = (nu_k / a_exp)**(1 / (a_exp - 1)), nu_k = theta * pi_k * d * sigma_k^2 / (q_k n_k)^2.
+    The unknown scale theta (smoothness, step size) is fixed by requiring the MEDIAN client's noise-optimal
+    retention to be `sref`, so s_k = sref * (nu_k / median nu)**(1 / (a_exp - 1)). No DP noise -> +inf (rate cap binds)."""
+    nu = pi * sigma ** 2 / np.maximum(q * nk, 1e-12) ** 2
+    if not np.any(nu > 0):
+        return np.full(len(pi), np.inf)
+    rel = nu / np.median(nu[nu > 0])
+    with np.errstate(divide="ignore"):
+        return np.where(rel > 0, sref * rel ** (1.0 / (a_exp - 1.0)), np.inf)
 
 
 def calibrate(a, n_clients, seed):
@@ -543,6 +604,70 @@ def evaluate(model, X, y, bs=1024, multi=False, ann=None):
                 pred_hist=np.bincount(pred, minlength=5).tolist())
 
 
+@torch.no_grad()
+def predict(model, X, multi, bs=1024):
+    model.eval()
+    f = torch.sigmoid if multi else (lambda z: F.softmax(z, -1))
+    return torch.cat([f(model(X[i:i + bs].float())) for i in range(0, len(X), bs)]).cpu().numpy()
+
+
+def f1_tuned(P_va, Y_va, P_te, Y_te, ann_va=None, ann_te=None, grid=np.linspace(0.02, 0.98, 49)):
+    """Macro-F1 on the test set with one threshold per label chosen to maximise F1 on VALIDATION
+    (labels without validation positives keep 0.5). Unannotated (CinC) entries are excluded."""
+    from sklearn.metrics import f1_score
+    Av = np.ones_like(Y_va, bool) if ann_va is None else np.asarray(ann_va, bool)
+    At = np.ones_like(Y_te, bool) if ann_te is None else np.asarray(ann_te, bool)
+    thr, f1s = [], []
+    for c in range(Y_va.shape[1]):
+        yv, pv = Y_va[Av[:, c], c], P_va[Av[:, c], c]
+        th = 0.5
+        if yv.sum() > 0:
+            th = float(grid[int(np.argmax([f1_score(yv, pv >= g, zero_division=0) for g in grid]))])
+        thr.append(th)
+        yt = Y_te[At[:, c], c]
+        if yt.sum() > 0:
+            f1s.append(f1_score(yt, P_te[At[:, c], c] >= th, zero_division=0))
+    return float(np.mean(f1s)), thr
+
+
+def hospital_auc(P_te, y_te, y_tr, parts, n_cls=5):
+    """Per-hospital test AUC on PTB-XL: the common test set re-weighted to each hospital's label mix
+    (the Dirichlet hospitals have no test records of their own)."""
+    from sklearn.metrics import roc_auc_score
+    pt = np.bincount(y_te, minlength=n_cls) / len(y_te)
+    out = []
+    for p in parts:
+        pk = np.bincount(y_tr[p], minlength=n_cls) / len(p)
+        w = pk[y_te] / np.maximum(pt[y_te], 1e-12)
+        try:
+            out.append(float(roc_auc_score(y_te, P_te, multi_class="ovr", average="macro", sample_weight=w)))
+        except ValueError:
+            out.append(float("nan"))
+    return out
+
+
+def mask_quality(model, gparams, X, Y, w_cls, multi, prev_gdelta, a, gen, d, n=256,
+                 grid=(0.05, 0.1, 0.2, 0.28, 0.4, 0.6, 0.9)):
+    """Fraction of the (non-private) full-batch gradient energy on a held-out batch that a mask of size s keeps:
+    public mask (same rule and exploration share as training) vs. a uniformly random mask. Measurement only:
+    uses validation data and its own random stream, so training is unaffected."""
+    idx = torch.randperm(len(X), generator=gen)[:n].to(X.device)
+    p = {k: v.clone().requires_grad_(True) for k, v in gparams.items()}
+    out = functional_call(model, p, (X[idx].float(),))
+    loss = F.binary_cross_entropy_with_logits(out, Y[idx], pos_weight=w_cls) if multi else \
+        F.cross_entropy(out, Y[idx], weight=w_cls)
+    g = flat(dict(zip(p.keys(), torch.autograd.grad(loss, list(p.values()))))).detach()
+    e = g.pow(2)
+    tot = float(e.sum()) + 1e-30
+    res = {}
+    for s in grid:
+        mp = public_mask(d, s, prev_gdelta, gen, a.explore)
+        mr = torch.zeros(d, dtype=torch.bool, device=g.device)
+        mr[torch.randperm(d, generator=gen)[:max(1, int(round(s * d)))].to(g.device)] = True
+        res[str(s)] = [float(e[mp].sum()) / tot, float(e[mr].sum()) / tot]
+    return res
+
+
 def local_train(model, gparams, X, y, w_cls, a, mask, sigma, q, gen, clip=None, cls_mask=None):
     """tau local steps. Non-DP: plain SGD. DP: per-sample clip + Gaussian noise, Poisson batches.
     If `mask` (public, flat bool) is given, gradients are restricted to it BEFORE clipping/noise,
@@ -556,9 +681,15 @@ def local_train(model, gparams, X, y, w_cls, a, mask, sigma, q, gen, clip=None, 
     lossf = (lambda o, t: F.binary_cross_entropy_with_logits(o, t, weight=cls_mask, pos_weight=w_cls)) if multi else \
             (lambda o, t: F.cross_entropy(o, t, weight=w_cls))
 
+    blur = getattr(a, "blur", 0.0)   # BLUR term of Cheng et al. (CVPR 2022), (blur/2)||w - w_global||^2
+
+    def reg(params):
+        return 0.5 * blur * sum((params[k] - gparams[k]).pow(2).sum() for k in names)
+
     def loss_one(params, xb, yb):
         out = functional_call(model, params, (xb.unsqueeze(0).float(),))
-        return lossf(out, yb.unsqueeze(0))
+        l = lossf(out, yb.unsqueeze(0))
+        return l + reg(params) if blur > 0 else l   # inside the per-example loss -> clipped with it (DP intact)
     ps_grad = vmap(grad(loss_one), in_dims=(None, 0, 0))
     C = a.clip if clip is None else clip
     # Adaptive clipping (Andrew et al., NeurIPS 2021) adapted to record-level DP-SGD: the clip norm tracks
@@ -602,6 +733,8 @@ def local_train(model, gparams, X, y, w_cls, a, mask, sigma, q, gen, clip=None, 
             sel = torch.randint(0, n, (a.batch,), generator=gen, device=X.device)
             out = functional_call(model, p, (X[sel].float(),))
             loss = lossf(out, y[sel])
+            if blur > 0:
+                loss = loss + reg(p)
             gr = torch.autograd.grad(loss, [p[k] for k in names])
             p = {k: (p[k] - a.lr * (g * mvec[k] if mvec is not None else g)).detach().requires_grad_(True)
                  for k, g in zip(names, gr)}
@@ -686,7 +819,10 @@ def run_id(a):
 
 
 EXTRA_DEFAULTS = dict(dataset="ptbxl", task="single", explore=0.1, adaclip=0.0, adaclip_lr=0.2, adaclip_infl=0.05, qbucket=512,
-                      adaclip_norm=0, agg="weighted", arch="cnn", bw_user=10e6, labelset="super")
+                      adaclip_norm=0, agg="weighted", arch="cnn", bw_user=10e6, labelset="super",
+                      # v1.1 options (defaults reproduce the v1.0 runs exactly)
+                      agg_mu=1.0, server_mom=0.0, smin_size=0, na_sref=0.9, na_a=0.5, wei_V=1.0, blur=0.0,
+                      csi_err=0.0, csi_backoff_db=0.0, harq_max=3, cinc_split="record", mq_every=0)
 
 
 def fl_run(a, data, log=print):
@@ -706,6 +842,8 @@ def fl_run(a, data, log=print):
     assert data["kind"] == a.dataset, f"--dataset {a.dataset} but the npz holds {data['kind']}"
     if a.dataset == "cinc":   # one federated client per real institution
         assert a.task == "multi", "CinC-2021 is multi-label: use --task multi"
+        assert data.get("split_kind", "record") == a.cinc_split, \
+            f"--cinc_split {a.cinc_split} but the npz was split by {data.get('split_kind', 'record')}"
         assert a.N == len(data["site_names"]), f"set --N {len(data['site_names'])} (number of institutions)"
         parts = [np.where(data["site_tr"] == k)[0] for k in range(a.N)]
     else:
@@ -751,6 +889,41 @@ def fl_run(a, data, log=print):
                 cache[key] = solve_sigma(a.eps, a.delta, *key)
             sigma[k] = cache[key]
 
+    # ---- v1.1 policies: calibrated before training from public quantities only -------------------
+    pi = nk / nk.sum()
+    if a.smin_size or a.method in ("noiseaware", "wei"):
+        Rcal = capacity_bits(calib_snr(a, a.N, a.seed), a.bw_user)          # (draws, N)
+    if a.smin_size:   # size-aware floor: small sites get a higher floor, kappa re-matched to the budget
+        a._smin_k = np.minimum(a.smax, a.smin * np.maximum(1.0, np.sqrt(np.median(nk) / nk)))
+        a._tmax_coef = bisect_coef(lambda c: np.clip(c * Rcal, a._smin_k, a.smax), s_bar)
+    if a.method == "noiseaware":
+        a._na_ssharp = noise_sharp(pi, sigma, q, nk, a.na_sref, a.na_a)
+        a._na_coef = bisect_coef(lambda c: np.clip(np.minimum(a._na_ssharp, c * Rcal), a.smin, a.smax), s_bar)
+    wei_bits = lambda s: 32.0 * s * d + d   # Wei et al. 2024: values + a 1-bit-per-parameter mask
+
+    # delay queues are kept in units of a reference latency (the fixed ratio at the median calibration rate),
+    # so the drift-plus-penalty weight V is dimensionless
+    L_ref = (32.0 * s_bar * d + d) / float(np.median(Rcal)) if a.method == "wei" else 1.0
+
+    def wei_step(Q, R, Lbar):
+        """One round of the drift-plus-penalty rule and its queue update. Per client it minimises
+        -V s + Q * L(s) / L_ref with L(s) = (32 s d + d) / R: linear in s, hence bang-bang."""
+        s = np.where(Q * 32.0 * d / (R * L_ref) < a.wei_V, a.smax, a.smin)
+        return s, np.maximum(Q + (wei_bits(s) / R - Lbar) / L_ref, 0.0)
+    if a.method == "wei":   # average-delay target Lbar chosen so that the mean retention matches s_bar
+        def wei_mean(Lbar):   # replay the actual participation schedule on calibration channel draws
+            Q, tot = np.zeros(a.N), []
+            for t_ in range(a.T):
+                sl = sched[t_]
+                s, Qn = wei_step(Q, Rcal[t_ % len(Rcal)], Lbar)
+                Q[sl] = Qn[sl]; tot.append(s[sl])
+            return np.concatenate(tot)
+        a._wei_Lbar = bisect_coef(wei_mean, s_bar, lo=1e-6, hi=1e4, it=80)
+    wei_Q = np.zeros(a.N)
+    vel = torch.zeros(d, device=dev)                       # server momentum buffer (--server_mom)
+    csi_rng = np.random.default_rng(a.seed + 555)          # CSI-error / HARQ draws: separate stream
+    mq_gen = torch.Generator(); mq_gen.manual_seed(a.seed + 999)   # mask-quality probe: separate stream
+
     start, hist, prev_gdelta = 0, [], torch.zeros(d, device=dev)
     clip_k = np.full(a.N, float(a.clip))   # per-site clip norm (changes only with --adaclip)
     ck = os.path.join(a.ckpt, f"{rid}.pt")
@@ -760,6 +933,8 @@ def fl_run(a, data, log=print):
         clip_k = st.get("clip_k", clip_k)
         torch.set_rng_state(st["cpu_rng"]); gen.set_state(st["gen"]); cpu_gen.set_state(st["cpu_gen"])
         ch.g = st["ch_rng"]; rng = st["rng"]
+        if "vel" in st:
+            vel, wei_Q, csi_rng = st["vel"], st["wei_Q"], st["csi_rng"]; mq_gen.set_state(st["mq_gen"])
         log(f"[resume] {rid} from round {start}")
 
     bpv, bidx = 32, int(math.ceil(math.log2(d)))  # bits per value / per Top-k index (18 for d < 2^18)
@@ -769,17 +944,44 @@ def fl_run(a, data, log=print):
     for t in range(start, a.T):
         snr = ch.snr_db()
         sel = sched[t]
-        s_all = retention(a.method, snr, a, rng, s_bar)
+        rec_extra = {}
+        # ---- imperfect CSI + HARQ. The rate (and retention) is chosen from the ESTIMATED SNR;
+        # if it exceeds the true capacity the update is retransmitted on fresh fading, up to harq_max attempts.
+        snr_ret = snr
+        if a.csi_err > 0:
+            e2, fad = a.csi_err, ch.last_fad
+            h = np.sqrt(fad) * np.exp(2j * np.pi * csi_rng.random(a.N))
+            w = (csi_rng.normal(size=a.N) + 1j * csi_rng.normal(size=a.N)) / np.sqrt(2)
+            h_hat = (1 - e2) * h + np.sqrt(e2 * (1 - e2)) * w          # MMSE estimate, h = h_hat + e
+            snr_ret = snr + 10 * np.log10(np.abs(h_hat) ** 2 / fad) - a.csi_backoff_db
+            r_hat = capacity_bits(snr_ret, a.bw_user)
+            n_att, ok = np.ones(a.N, int), np.ones(a.N, bool)
+            for k in sel:
+                good = r_hat[k] <= capacity_bits(snr[k], a.bw_user)
+                while not good and n_att[k] < a.harq_max:
+                    n_att[k] += 1
+                    f2 = csi_rng.exponential(1.0)
+                    good = r_hat[k] <= capacity_bits(snr[k] - 10 * np.log10(fad[k]) + 10 * np.log10(f2), a.bw_user)
+                ok[k] = good
+            rec_extra = dict(dropped=int((~ok[sel]).sum()), retx=int((n_att[sel] - 1).sum()))
+        if a.method == "wei":
+            s_all, q_new = wei_step(wei_Q, capacity_bits(snr_ret, a.bw_user), a._wei_Lbar)
+            wei_Q = np.where(np.isin(np.arange(a.N), sel), q_new, wei_Q)   # only the senders' delay queues move
+        else:
+            s_all = retention("fixed" if a.method == "cheng" else a.method, snr_ret, a, rng, s_bar)
+        recv = [k for k in sel if a.csi_err <= 0 or ok[k]]
         bw_user = a.bw_user
         agg = torch.zeros(d, device=dev)
-        cov = torch.zeros(d, device=dev) if a.agg == "coord" else None   # weighted coverage per coordinate
+        cov = torch.zeros(d, device=dev) if a.agg in ("coord", "damped") else None   # weighted coverage per coordinate
         bits, lat = [], []
+        if a.mq_every and t % a.mq_every == 0:     # B4: mask quality on a held-out (validation) batch, no DP needed
+            rec_extra["mq"] = mask_quality(model, gparams, data["Xva"], Yva, w_cls, multi, prev_gdelta, a, mq_gen, d)
         for k in sel:
             Xk, yk = data["Xtr"][parts[k]], Ytr[parts[k]]
             s = float(s_all[k])
             quant = a.method in ("qsgd", "qsgd_cap")
             use_public = a.mask == "public" and a.method != "fedavg" and not quant
-            mask = public_mask(d, s, prev_gdelta, cpu_gen, a.explore) if use_public else None
+            mask = public_mask(d, s, prev_gdelta, cpu_gen, 1.0 if a.method == "wei" else a.explore) if use_public else None
             cm = torch.as_tensor(data["site_cls"][k], dtype=torch.float32, device=dev) if a.dataset == "cinc" else None
             delta, clip_k[k] = local_train(model, gparams, Xk, yk, w_cls, a, mask, sigma[k], q[k], gen, clip_k[k], cm)
             if quant:   # dense DP update, stochastically quantised at the matched bit width
@@ -789,7 +991,7 @@ def fl_run(a, data, log=print):
                 kk = max(1, int(round(s * d)))
                 keep = torch.topk(delta.abs(), kk).indices
                 sp = torch.zeros_like(delta); sp[keep] = delta[keep]; delta = sp
-            wk = nk[k] / nk[sel].sum()
+            wk = nk[k] / nk[recv].sum() if k in recv else 0.0   # dropped (HARQ failure) updates are not aggregated
             agg += wk * delta
             if cov is not None:   # support of the transmitted update (public mask / Top-k set / dense)
                 if use_public:
@@ -800,17 +1002,30 @@ def fl_run(a, data, log=print):
                     cov += wk
             if quant:
                 b = d * bq + math.ceil(d / a.qbucket) * bpv
+            elif a.method == "wei":
+                b = wei_bits(s)
             else:
                 b = s * d * (bpv + (0 if (use_public or a.method == "fedavg") else bidx))
             bits.append(b)
-            lat.append(b / capacity_bits(snr[k], bw_user))
+            if a.csi_err > 0:   # every attempt is sent at the rate chosen from the estimate
+                lat.append(n_att[k] * b / capacity_bits(snr_ret[k], bw_user))
+            else:
+                lat.append(b / capacity_bits(snr[k], bw_user))
         if cov is not None:   # post-processing of the released updates + public weights/masks: DP unchanged
-            agg = torch.where(cov > 0, agg / cov.clamp_min(1e-12), torch.zeros_like(agg))
-        gnew = flat(gparams) + a.server_lr * agg
-        prev_gdelta = agg
+            if a.agg == "coord":
+                agg = torch.where(cov > 0, agg / cov.clamp_min(1e-12), torch.zeros_like(agg))
+            else:             # damped: mu = 1 -> weighted (no change), mu = 0 -> per-coordinate normalised
+                agg = agg / (cov + a.agg_mu * (1 - cov)).clamp_min(1e-12)
+        if a.server_mom > 0:  # server momentum (FedAvgM): post-processing of the aggregate, DP unchanged
+            vel = a.server_mom * vel + agg
+            upd = vel
+        else:
+            upd = agg
+        gnew = flat(gparams) + a.server_lr * upd
+        prev_gdelta = upd
         gparams = unflat(gnew.clone(), gparams)
         rec = dict(t=t + 1, mb=float(np.sum(bits) / 8e6), lat_s=float(np.max(lat)),
-                   s_mean=float(np.mean(s_all[sel])))
+                   s_mean=float(np.mean(s_all[sel])), **rec_extra)
         if (t + 1) % a.eval_every == 0 or t + 1 == a.T:
             for kname, v in gparams.items():
                 dict(model.named_parameters())[kname].data.copy_(v)
@@ -824,7 +1039,7 @@ def fl_run(a, data, log=print):
         if (t + 1) % a.ckpt_every == 0:
             torch.save(dict(g=gparams, t=t + 1, hist=hist, prev=prev_gdelta, cpu_rng=torch.get_rng_state(),
                             gen=gen.get_state(), cpu_gen=cpu_gen.get_state(), ch_rng=ch.g, rng=rng,
-                            clip_k=clip_k), ck)
+                            clip_k=clip_k, vel=vel, wei_Q=wei_Q, csi_rng=csi_rng, mq_gen=mq_gen.get_state()), ck)
 
     for kname, v in gparams.items():
         dict(model.named_parameters())[kname].data.copy_(v)
@@ -835,6 +1050,16 @@ def fl_run(a, data, log=print):
                                          ann=data["ann_te"][data["site_te"] == k])["auc"]
                             for k, nm in enumerate(data["site_names"])}
         test["site_nk"] = dict(zip(data["site_names"], nk.tolist()))
+    # ---- probabilities for later analysis, F1 at validation-tuned thresholds, per-hospital AUC
+    P_va, P_te = predict(model, data["Xva"], multi), predict(model, data["Xte"], multi)
+    np.savez_compressed(os.path.join(a.results, f"{rid}_probs.npz"), va=P_va.astype(np.float16),
+                        te=P_te.astype(np.float16))
+    if multi:
+        test["f1_tuned"], test["thr"] = f1_tuned(P_va, Yva.cpu().numpy(), P_te, Yte.cpu().numpy(),
+                                                 data.get("ann_va"), data.get("ann_te"))
+    elif a.dataset == "ptbxl":
+        test["hosp_auc"] = hospital_auc(P_te, Yte.cpu().numpy(), data["ytr"].cpu().numpy(), parts)
+    test["part_sizes"] = nk.tolist()
     maj = float(cnt.max() / cnt.sum())
     res = dict(id=rid, cfg=cfg, d=d, s_bar=s_bar, sigma_mean=float(sigma.mean()), sigma_max=float(sigma.max()),
                test=test, comm_mb=float(sum(h["mb"] for h in hist)),
@@ -897,7 +1122,136 @@ def select_lr(results, base):
     return best
 
 
+# ---- v1.1 tuning candidates (seeds 1-2, default DP point; picked on final VALIDATION AUC) --------------
+DP_PUB = dict(dp="record", mask="public")
+REV_TUNE = {
+    "cheng": [dict(method="cheng", dp="record", mask="topk", blur=b) for b in (0.01, 0.1, 1.0)],
+    "wei": [dict(method="wei", wei_V=v, **DP_PUB) for v in (0.1, 1.0, 10.0)],
+    "noiseaware": [dict(method="noiseaware", na_sref=s, na_a=e, **DP_PUB) for s, e in ((0.9, 0.5), (0.9, 0.25), (0.5, 0.25))],
+    "damped": [dict(method="capacity", agg="damped", agg_mu=m, **DP_PUB) for m in (0.25, 0.5, 0.75)],
+    "mom": [dict(method="capacity", server_mom=b, server_lr=round(1 - b, 3), **DP_PUB) for b in (0.5, 0.9)],
+    "sizefloor": [dict(method="capacity", smin_size=1, **DP_PUB)],
+}
+E_VARIANTS = ("damped", "mom", "sizefloor", "noiseaware")
+SETTINGS = {"default": {}, "tuned": dict(tau=5), "harsh": dict(scenario="blockage_interf"), "N100": dict(N=100)}
+CINC = dict(dataset="cinc", task="multi", N=6, part=1.0, cinc_split="patient")
+
+
+def _val_auc(results, base, o):
+    import argparse as _ap
+    f = os.path.join(results or "", run_id(_ap.Namespace(**{**base, **o}))[0] + ".json")
+    return json.load(open(f))["hist"][-1]["val_auc"] if os.path.exists(f) else None
+
+
+def v11_select(results, base):
+    """Per method family, the candidate with the best mean final validation AUC over seeds 1-2 (None if unfinished)."""
+    pick = {}
+    for fam, cands in REV_TUNE.items():
+        sc = []
+        for o in cands:
+            v = [_val_auc(results, base, {**o, "seed": s}) for s in (1, 2)]
+            sc.append(np.mean(v) if None not in v else None)
+        pick[fam] = None if None in sc else cands[int(np.argmax(sc))]
+    return pick
+
+
+def v11_best_variant(results, base, pick):
+    """The E variant with the largest mean TEST-AUC gain over the plain capacity map in the screening runs
+    (settings default / harsh / N100, seeds 1-3). Chosen once, before the 20-seed runs, and reported as such."""
+    best, gain = None, -1e9
+    for fam in E_VARIANTS:
+        if pick.get(fam) is None:
+            return None
+        g = []
+        for st in ("default", "harsh", "N100"):
+            for s in (1, 2, 3):
+                a_ = _test_auc(results, base, {**pick[fam], **SETTINGS[st], "seed": s})
+                b_ = _test_auc(results, base, {"method": "capacity", **DP_PUB, **SETTINGS[st], "seed": s})
+                if a_ is None or b_ is None:
+                    return None
+                g.append(a_ - b_)
+        if np.mean(g) > gain:
+            best, gain = fam, float(np.mean(g))
+    return best
+
+
+def _test_auc(results, base, o):
+    import argparse as _ap
+    f = os.path.join(results or "", run_id(_ap.Namespace(**{**base, **o}))[0] + ".json")
+    return json.load(open(f))["test"]["auc"] if os.path.exists(f) else None
+
+
+def build_v11_grid(stage, results, base):
+    S20, S5, S3 = list(range(1, 21)), [1, 2, 3, 4, 5], [1, 2, 3]
+    base = base or vars(defaults().parse_args([]))
+    G = []
+    pick = v11_select(results, base) if stage not in ("v11_tune", "v11_b4", "v11_h", "v11_f") else {}
+    need = lambda fams: all(pick.get(f) is not None for f in fams)
+    if stage == "v11_tune":       # step 1: tune the new baselines and remedies (2 seeds, default point)
+        for fam, cands in REV_TUNE.items():
+            for o, s in itertools.product(cands, (1, 2)):
+                G.append({**o, "seed": s})
+    if stage == "v11_b4":         # mask-quality measurement (no new training configuration, separate IDs)
+        for st, s in itertools.product(("default", "tuned"), S3):
+            G.append(dict(method="capacity", mq_every=10, seed=s, **DP_PUB, **SETTINGS[st]))
+    if stage == "v11_h":          # 20-seed protocol on PTB-XL (seeds 1-5 already archived and reused)
+        for st, s in itertools.product(("default", "tuned"), S20):
+            G.append(dict(method="fedavg", dp="record", seed=s, **SETTINGS[st]))
+            for m in ("fixed", "capacity"):
+                G.append(dict(method=m, seed=s, **DP_PUB, **SETTINGS[st]))
+        for s in S20:             # 44 diagnostic statements
+            G.append(dict(method="fedavg", dp="record", task="multi", labelset="diag", seed=s))
+            for m in ("fixed", "capacity"):
+                G.append(dict(method=m, task="multi", labelset="diag", seed=s, **DP_PUB))
+    if stage == "v11_f":          # imperfect CSI with HARQ and drops (training needed only here)
+        for e, m, s in itertools.product((0.05, 0.1), ("fixed", "capacity"), S5):
+            G.append(dict(method=m, csi_err=e, csi_backoff_db=1.0, seed=s, **DP_PUB))
+    if stage == "v11_d":          # new baselines at their tuned values, 5 seeds, three PTB-XL settings
+        if not need(("cheng", "wei")):
+            print("!! v11_d: run --stage v11_tune first"); return G
+        for st, s, fam in itertools.product(("default", "tuned", "harsh"), S5, ("cheng", "wei")):
+            G.append({**pick[fam], **SETTINGS[st], "seed": s})
+    if stage == "v11_e":          # remedies for the accuracy cost: screening, 3 seeds, settings with the largest cost
+        if not need(E_VARIANTS):
+            print("!! v11_e: run --stage v11_tune first"); return G
+        for st, s, fam in itertools.product(("default", "harsh", "N100"), S3, E_VARIANTS):
+            G.append({**pick[fam], **SETTINGS[st], "seed": s})
+    if stage == "v11_h_best":     # 20 seeds for the winning remedy (chosen from the screening, test-AUC gain)
+        bv = v11_best_variant(results, base, pick) if need(E_VARIANTS) else None
+        if bv is None:
+            print("!! v11_h_best: finish v11_tune and v11_e first"); return G
+        print(f"   selected remedy: {bv} -> {pick[bv]}")
+        for st, s in itertools.product(("default", "tuned"), S20):
+            G.append({**pick[bv], **SETTINGS[st], "seed": s})
+        for s in S20:
+            G.append({**pick[bv], "task": "multi", "labelset": "diag", "seed": s})
+    if stage == "v11_cinc":       # CinC-2021 with the patient-wise PTB-XL split (needs --data cinc2021_pw.npz)
+        for s in S5:              # the original CinC table, re-run on the corrected split
+            G.append(dict(method="fedavg", dp="none", seed=s, **CINC))
+            for m in ("fixed", "capacity"):
+                G.append(dict(method=m, dp="none", mask="topk", seed=s, **CINC))
+            for m in ("random", "qsgd_cap"):
+                G.append(dict(method=m, seed=s, **DP_PUB, **CINC))
+        for s in S20:             # 20-seed protocol
+            G.append(dict(method="fedavg", dp="record", seed=s, **CINC))
+            for m in ("fixed", "capacity"):
+                G.append(dict(method=m, seed=s, **DP_PUB, **CINC))
+        if need(("cheng", "wei")):
+            for s, fam in itertools.product(S5, ("cheng", "wei")):
+                G.append({**pick[fam], **CINC, "seed": s})
+        if need(E_VARIANTS):
+            for s, fam in itertools.product(S3, E_VARIANTS):
+                G.append({**pick[fam], **CINC, "seed": s})
+            bv = v11_best_variant(results, base, pick)
+            if bv:
+                for s in S20:
+                    G.append({**pick[bv], **CINC, "seed": s})
+    return G
+
+
 def build_grid(stage, results=None, base=None):
+    if stage.startswith("v11_"):
+        return build_v11_grid(stage, results, base)
     S5, S3 = [1, 2, 3, 4, 5], [1, 2, 3]
     G = []
     if stage == "best":   # tune (tau, T) on VALIDATION AUC (3 seeds); finished runs are reused
@@ -1044,15 +1398,30 @@ def defaults():
     A("--qbucket", type=int, default=512)
     A("--adaclip_norm", type=int, default=0, help="1 = normalise the DP-SGD step by C/C0 (stable adaptive clipping)")
     A("--dataset", default="ptbxl", choices=["ptbxl", "cinc"])
-    A("--agg", default="weighted", choices=["weighted", "coord"],
+    A("--agg", default="weighted", choices=["weighted", "coord", "damped"],
       help="coord = per-coordinate normalised aggregation: each coordinate is averaged only over the sites that sent it")
     A("--arch", default="cnn", choices=["cnn", "resnet"])
+    # ---- v1.1 options ----
+    A("--agg_mu", type=float, default=1.0, help="--agg damped: divide each coordinate by cov + mu (1 - cov)")
+    A("--server_mom", type=float, default=0.0, help="server momentum (FedAvgM); 0 = off")
+    A("--smin_size", type=int, default=0, help="1 = size-aware floor smin * max(1, sqrt(median n / n_k))")
+    A("--na_sref", type=float, default=0.9, help="noiseaware: noise-optimal retention of the median client")
+    A("--na_a", type=float, default=0.5, help="noiseaware: phi(s) = s**a energy-capture exponent")
+    A("--wei_V", type=float, default=1.0, help="wei: drift-plus-penalty weight V")
+    A("--blur", type=float, default=0.0, help="BLUR regulariser (Cheng et al. 2022); 0 = off")
+    A("--csi_err", type=float, default=0.0, help="channel-estimation error variance (0 = perfect CSI)")
+    A("--csi_backoff_db", type=float, default=0.0, help="SNR back-off when choosing the rate from the estimate")
+    A("--harq_max", type=int, default=3, help="max transmission attempts before an update is dropped")
+    A("--cinc_split", default="record", choices=["record", "patient"],
+      help="CinC-2021 split the npz was built with (patient = PTB-XL site split by patient via its strat_fold)")
+    A("--mq_every", type=int, default=0, help="measure mask quality every k rounds (0 = off)")
     return p
 
 
 def main():
     ap = argparse.ArgumentParser(parents=[defaults()])
-    ap.add_argument("cmd", choices=["prep", "prep_ml", "prep_cinc", "run", "grid", "bench", "summarize", "count", "select"])
+    ap.add_argument("cmd", choices=["prep", "prep_ml", "prep_cinc", "resplit_cinc", "run", "grid", "bench",
+                                    "summarize", "count", "select"])
     ap.add_argument("--stage", default="main"); ap.add_argument("--shard", default="0/1")
     ap.add_argument("--out", default="/kaggle/working/ptbxl100.npz"); ap.add_argument("--root", default=None)
     ap.add_argument("--budget_h", type=float, default=30.0)
@@ -1064,6 +1433,8 @@ def main():
         return prep_ml(a.out, a.root)
     if a.cmd == "prep_cinc":
         return prep_cinc(a.out, a.root)
+    if a.cmd == "resplit_cinc":   # python cgfl.py resplit_cinc --data cinc2021.npz --root <ptbxl dir> --out cinc2021_pw.npz
+        return resplit_cinc(a.data, a.root, a.out)
     if a.cmd == "select" and a.stage.startswith("resnet"):
         for key, (b, sc) in select_lr(a.results, vars(a)).items():
             print(f"  {key}: candidates {sc} -> selected {b}")
@@ -1089,8 +1460,9 @@ def main():
         print(f"{per_round:.2f} s/round (DP, N={a.N}, part={a.part}, tau={a.tau}) on {dev}")
         tot = 0
         done = set(os.path.basename(f)[:-5] for f in glob.glob(os.path.join(a.results, "*.json")))
-        for st in ["main", "eps_T", "ablation", "scale", "channel", "best", "best_confirm", "multilabel", "external", "cinc",
-                   "agg", "agg_cinc", "resnet_tune", "resnet", "diag"]:
+        for st in (a.stage.split(",") if a.stage.startswith("v11_") else
+                   ["main", "eps_T", "ablation", "scale", "channel", "best", "best_confirm", "multilabel", "external",
+                    "cinc", "agg", "agg_cinc", "resnet_tune", "resnet", "diag"]):
             g = [o for o in build_grid(st, a.results, vars(a))
                  if run_id(argparse.Namespace(**{**vars(a), **o}))[0] not in done]   # only runs still to do
             h = sum(per_round * o.get("T", a.T) * (o.get("N", a.N) / a.N) *
@@ -1102,7 +1474,12 @@ def main():
         return
     # grid
     i, n = map(int, a.shard.split("/"))
-    grid = build_grid(a.stage, a.results, vars(a))[i::n]
+    full, seen = [], set()
+    for o in build_grid(a.stage, a.results, vars(a)):   # de-duplicate (a run listed twice would race across shards)
+        rid = run_id(argparse.Namespace(**{**vars(a), **o}))[0]
+        if rid not in seen:
+            seen.add(rid); full.append(o)
+    grid = full[i::n]
     base = vars(a).copy()
     print(f"stage={a.stage} shard {i}/{n}: {len(grid)} runs on {dev}", flush=True)
     for j, o in enumerate(grid):
