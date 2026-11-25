@@ -1216,6 +1216,8 @@ def build_v11_grid(stage, results, base):
             print("!! v11_e: run --stage v11_tune first"); return G
         for st, s, fam in itertools.product(("default", "harsh", "N100"), S3, E_VARIANTS):
             G.append({**pick[fam], **SETTINGS[st], "seed": s})
+        for st, s in itertools.product(("default", "harsh", "N100"), S3):   # control: momentum on the FIXED ratio
+            G.append({**pick["mom"], "method": "fixed", **SETTINGS[st], "seed": s})
     if stage == "v11_h_best":     # 20 seeds for the winning remedy (chosen from the screening, test-AUC gain)
         bv = v11_best_variant(results, base, pick) if need(E_VARIANTS) else None
         if bv is None:
