@@ -72,6 +72,8 @@ All new options default to the v1.0 behaviour, so every v1.0 run ID and result i
 | `resplit_cinc` | Patient-wise split of the PTB-XL institution inside the CinC-2021 file (`--cinc_split patient`) |
 | saved per run | `<id>_probs.npz` (validation and test probabilities); multi-label F1 at validation-tuned thresholds; per-hospital AUC on PTB-XL |
 
+Settings used in the paper that differ from the option defaults: `--na_sref 0.5 --na_a 0.25` (selected on validation data), `--wei_V 0.1`, `--blur 0.01`, `--agg_mu 0.5`, `--server_mom 0.9 --server_lr 0.1`, `--csi_backoff_db 1.0`. The channel code uses a 0 dB noise figure over the 100 MHz carrier, which gives the same noise power (−94 dBm) as the paper's 10 dB over the 10 MHz sub-band.
+
 Version 1.1 statistics and tables (all 880 result files are in `results/`):
 
 ```bash
