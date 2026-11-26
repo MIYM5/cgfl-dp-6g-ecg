@@ -72,6 +72,13 @@ All new options default to the v1.0 behaviour, so every v1.0 run ID and result i
 | `resplit_cinc` | Patient-wise split of the PTB-XL institution inside the CinC-2021 file (`--cinc_split patient`) |
 | saved per run | `<id>_probs.npz` (validation and test probabilities); multi-label F1 at validation-tuned thresholds; per-hospital AUC on PTB-XL |
 
+Version 1.1 statistics and tables (all 880 result files are in `results/`):
+
+```bash
+python analysis_v11.py . results data/ptbxl_ml.npz analysis_v11.json   # 20-seed non-inferiority tests, baselines, remedies, CSI, mask quality, clinical metrics, end-to-end time
+python make_tables_v11.py analysis_v11.json results paper/             # LaTeX tables and figs/data/maskq.csv
+```
+
 Stages, in order (later stages use the tuned values selected on validation AUC by earlier ones):
 `v11_tune`, `v11_e`, `v11_d`, `v11_b4`, `v11_h` (20 seeds), `v11_h_best`, `v11_cinc` (needs the patient-wise CinC file), `v11_f`.
 
