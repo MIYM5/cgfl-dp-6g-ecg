@@ -931,10 +931,11 @@ def fl_run(a, data, log=print):
         st = torch.load(ck, map_location=dev, weights_only=False)
         gparams, start, hist, prev_gdelta = st["g"], st["t"], st["hist"], st["prev"]
         clip_k = st.get("clip_k", clip_k)
-        torch.set_rng_state(st["cpu_rng"]); gen.set_state(st["gen"]); cpu_gen.set_state(st["cpu_gen"])
+        # generator states are CPU ByteTensors; map_location=dev would have moved them to the GPU
+        torch.set_rng_state(st["cpu_rng"].cpu()); gen.set_state(st["gen"].cpu()); cpu_gen.set_state(st["cpu_gen"].cpu())
         ch.g = st["ch_rng"]; rng = st["rng"]
         if "vel" in st:
-            vel, wei_Q, csi_rng = st["vel"], st["wei_Q"], st["csi_rng"]; mq_gen.set_state(st["mq_gen"])
+            vel, wei_Q, csi_rng = st["vel"], st["wei_Q"], st["csi_rng"]; mq_gen.set_state(st["mq_gen"].cpu())
         log(f"[resume] {rid} from round {start}")
 
     bpv, bidx = 32, int(math.ceil(math.log2(d)))  # bits per value / per Top-k index (18 for d < 2^18)
@@ -1487,7 +1488,12 @@ def main():
     for j, o in enumerate(grid):
         cfg = argparse.Namespace(**{**base, **o})
         print(f"--- [{j+1}/{len(grid)}] {o}", flush=True)
-        fl_run(cfg, data, log=lambda *x: print(*x, flush=True))
+        try:   # one failing run must not stop the rest of the shard
+            fl_run(cfg, data, log=lambda *x: print(*x, flush=True))
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print(f"!! run failed and was skipped: {o}: {type(e).__name__}: {e}", flush=True)
 
 
 def grid_ids(stage, base=None):
